@@ -139,6 +139,13 @@
                                     <a href="{{ route('admin.performances.edit', $rev) }}" class="btn-outline-sb py-1 px-2" title="Edit">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
+                                    <form action="{{ route('admin.performances.destroy', $rev) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus penilaian ini? Anda dapat menginput ulang setelah dihapus.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-danger-sb py-1 px-2" style="padding: 4px 8px;">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
