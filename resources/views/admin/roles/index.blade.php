@@ -55,16 +55,18 @@
                                     <button type="submit" class="btn-primary-sb py-1 px-3">
                                         <i class="fa-solid fa-check"></i> Sync Permission
                                     </button>
-                                    @if($role->name !== 'Super Admin')
-                                    <form action="{{ route('admin.roles.destroy', $role) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn-danger-sb py-1 px-3 bg-transparent border-0 text-danger p-0">
-                                            <i class="fa-solid fa-trash"></i> Hapus Role
-                                        </button>
-                                    </form>
-                                    @endif
                                 </div>
                             </form>
+                            @if($role->name !== 'Super Admin')
+                            <div class="mt-2 text-end">
+                                <form action="{{ route('admin.roles.destroy', $role) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn-danger-sb py-1 px-3 bg-transparent border-0 text-danger p-0 small">
+                                        <i class="fa-solid fa-trash"></i> Hapus Role
+                                    </button>
+                                </form>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>

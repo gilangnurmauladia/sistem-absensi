@@ -30,27 +30,37 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
     // Karyawan (CRUD)
-    Route::resource('employees', Admin\EmployeeController::class);
+    Route::middleware(['permission:manage-employees'])->group(function () {
+        Route::resource('employees', Admin\EmployeeController::class);
+    });
 
     // Absensi
-    Route::get('/attendances', [Admin\AttendanceController::class, 'index'])->name('attendances.index');
-    Route::get('/attendances/recap', [Admin\AttendanceController::class, 'recap'])->name('attendances.recap');
-    Route::get('/attendances/{employee}', [Admin\AttendanceController::class, 'show'])->name('attendances.show');
+    Route::middleware(['permission:manage-attendance'])->group(function () {
+        Route::get('/attendances/recap', [Admin\AttendanceController::class, 'recap'])->name('attendances.recap');
+        Route::resource('attendances', Admin\AttendanceController::class)->except(['show']);
+        Route::get('/attendances/{employee}', [Admin\AttendanceController::class, 'show'])->name('attendances.show');
+    });
 
     // Jadwal Shift
-    Route::get('/schedules', [Admin\ScheduleController::class, 'index'])->name('schedules.index');
-    Route::get('/schedules/create', [Admin\ScheduleController::class, 'create'])->name('schedules.create');
-    Route::post('/schedules', [Admin\ScheduleController::class, 'store'])->name('schedules.store');
-    Route::delete('/schedules/{schedule}', [Admin\ScheduleController::class, 'destroy'])->name('schedules.destroy');
+    Route::middleware(['permission:manage-schedules'])->group(function () {
+        Route::get('/schedules', [Admin\ScheduleController::class, 'index'])->name('schedules.index');
+        Route::get('/schedules/create', [Admin\ScheduleController::class, 'create'])->name('schedules.create');
+        Route::post('/schedules', [Admin\ScheduleController::class, 'store'])->name('schedules.store');
+        Route::delete('/schedules/{schedule}', [Admin\ScheduleController::class, 'destroy'])->name('schedules.destroy');
+    });
 
     // Penilaian Karyawan
-    Route::resource('performances', Admin\PerformanceReviewController::class);
+    Route::middleware(['permission:manage-performance'])->group(function () {
+        Route::resource('performances', Admin\PerformanceReviewController::class);
+    });
 
     // Manajemen Izin
-    Route::get('/leaves', [Admin\LeaveController::class, 'index'])->name('leaves.index');
-    Route::get('/leaves/{leave}', [Admin\LeaveController::class, 'show'])->name('leaves.show');
-    Route::post('/leaves/{leave}/approve', [Admin\LeaveController::class, 'approve'])->name('leaves.approve');
-    Route::post('/leaves/{leave}/reject', [Admin\LeaveController::class, 'reject'])->name('leaves.reject');
+    Route::middleware(['permission:manage-leaves'])->group(function () {
+        Route::get('/leaves', [Admin\LeaveController::class, 'index'])->name('leaves.index');
+        Route::get('/leaves/{leave}', [Admin\LeaveController::class, 'show'])->name('leaves.show');
+        Route::post('/leaves/{leave}/approve', [Admin\LeaveController::class, 'approve'])->name('leaves.approve');
+        Route::post('/leaves/{leave}/reject', [Admin\LeaveController::class, 'reject'])->name('leaves.reject');
+    });
  
     // User Management (Super Admin Only)
     Route::middleware(['role:Super Admin'])->group(function () {

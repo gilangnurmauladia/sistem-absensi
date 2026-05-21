@@ -10,6 +10,9 @@
             <p>Monitoring kehadiran karyawan per tanggal</p>
         </div>
         <div class="d-flex gap-2">
+            <a href="{{ route('admin.attendances.create') }}" class="btn-primary-sb">
+                <i class="fa-solid fa-plus"></i> Input Manual
+            </a>
             <a href="{{ route('admin.attendances.recap') }}" class="btn-outline-sb">
                 <i class="fa-solid fa-calendar-check"></i> Rekap Bulanan
             </a>

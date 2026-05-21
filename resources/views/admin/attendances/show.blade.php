@@ -80,6 +80,7 @@
                             <th>Jam Pulang</th>
                             <th>Status</th>
                             <th>Durasi</th>
+                            <th width="100">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,10 +95,23 @@
                                 </span>
                             </td>
                             <td>{{ $att->duration ?? '-' }}</td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('admin.attendances.edit', $att) }}" class="btn-outline-sb py-1 px-2" title="Edit">
+                                        <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                                    </a>
+                                    <form action="{{ route('admin.attendances.destroy', $att) }}" method="POST" onsubmit="return confirm('Hapus data absensi ini?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn-outline-sb py-1 px-2 border-danger text-danger" title="Hapus">
+                                            <i class="fa-solid fa-trash" style="font-size:11px;"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
+                            <td colspan="6" class="text-center py-5 text-muted">
                                 <i class="fa-solid fa-calendar-xmark fa-2x mb-2 opacity-20"></i><br>
                                 Tidak ada data absensi untuk periode ini.
                             </td>

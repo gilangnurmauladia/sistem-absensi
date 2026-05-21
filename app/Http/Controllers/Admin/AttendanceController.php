@@ -97,6 +97,56 @@ class AttendanceController extends Controller
         ));
     }
 
+    public function create()
+    {
+        $employees = Employee::where('status', 'aktif')->get();
+        return view('admin.attendances.create', compact('employees'));
+    }
+ 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'date'        => 'required|date',
+            'check_in'    => 'nullable',
+            'check_out'   => 'nullable',
+            'status'      => 'required|in:hadir,terlambat,izin,alpha,libur',
+            'notes'       => 'nullable|string',
+        ]);
+ 
+        Attendance::create($request->all());
+ 
+        return redirect()->route('admin.attendances.index', ['date' => $request->date])
+            ->with('success', 'Data absensi berhasil ditambahkan manual.');
+    }
+ 
+    public function edit(Attendance $attendance)
+    {
+        $attendance->load('employee');
+        return view('admin.attendances.edit', compact('attendance'));
+    }
+ 
+    public function update(Request $request, Attendance $attendance)
+    {
+        $request->validate([
+            'check_in'    => 'nullable',
+            'check_out'   => 'nullable',
+            'status'      => 'required|in:hadir,terlambat,izin,alpha,libur',
+            'notes'       => 'nullable|string',
+        ]);
+ 
+        $attendance->update($request->all());
+ 
+        return redirect()->route('admin.attendances.show', $attendance->employee_id)
+            ->with('success', 'Data absensi berhasil diperbarui.');
+    }
+ 
+    public function destroy(Attendance $attendance)
+    {
+        $attendance->delete();
+        return back()->with('success', 'Data absensi berhasil dihapus.');
+    }
+
     public function show(Employee $employee, Request $request)
     {
         $month = $request->month ?? Carbon::now()->month;

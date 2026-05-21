@@ -28,15 +28,28 @@ class AttendanceController extends Controller
         $schedule = Schedule::where('employee_id', $employee->id)
             ->whereDate('date', $today)
             ->first();
-
-        // Tentukan status (hadir/terlambat)
+ 
+        if (!$schedule || $schedule->shift_type === 'libur') {
+            return back()->with('error', 'Anda tidak memiliki jadwal kerja hari ini.');
+        }
+ 
+        // Tentukan status (hadir/terlambat) dan validasi waktu shift
         $now    = Carbon::now();
         $status = 'hadir';
-
-        if ($schedule && $schedule->start_time) {
+ 
+        if ($schedule->start_time) {
             $startTime = Carbon::parse($schedule->start_time);
+            $endTime   = Carbon::parse($schedule->end_time);
+            
+            // Beri kelonggaran 30 menit sebelum shift mulai
+            $earliestCheckIn = (clone $startTime)->subMinutes(30);
+            
+            if ($now->lt($earliestCheckIn) || $now->gt($endTime)) {
+                return back()->with('error', "Bukan waktu shift Anda. Jadwal Anda: {$schedule->start_time} - {$schedule->end_time}");
+            }
+ 
             // Terlambat jika lebih dari 15 menit
-            if ($now->gt($startTime->addMinutes(15))) {
+            if ($now->gt((clone $startTime)->addMinutes(15))) {
                 $status = 'terlambat';
             }
         }
