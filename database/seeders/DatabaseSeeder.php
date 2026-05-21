@@ -16,6 +16,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // 0. Create Roles and Permissions
+        $this->call(RoleAndPermissionSeeder::class);
+
         // 1. Create Admin
         $admin = User::create([
             'name' => 'Bayu Saputra Pamungkas',
@@ -23,6 +26,7 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'admin',
         ]);
+        $admin->assignRole('Super Admin');
 
         // 2. Create Employees
         $employeesData = [
@@ -47,6 +51,7 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role' => 'karyawan',
             ]);
+            $user->assignRole('Karyawan');
 
             $emp = Employee::create([
                 'user_id' => $user->id,
@@ -142,11 +147,11 @@ class DatabaseSeeder extends Seeder
                 'reviewed_by' => $admin->id,
                 'month' => $lastMonth->month,
                 'year' => $lastMonth->year,
-                'punctuality' => rand(2, 3),
-                'attendance' => rand(2, 3),
-                'discipline' => rand(2, 3),
-                'cleanliness' => rand(2, 3),
-                'friendliness' => rand(2, 3),
+                'tardiness_score' => rand(2, 3),
+                'attendance_score' => rand(2, 3),
+                'responsibility_score' => rand(2, 3),
+                'cleanliness_score' => rand(2, 3),
+                'friendliness_score' => rand(2, 3),
                 'notes' => 'Kinerja bulan lalu cukup baik.',
             ]);
         }

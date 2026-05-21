@@ -21,23 +21,26 @@ class RoleAndPermissionSeeder extends Seeder
             'manage-permissions',
             'manage-employees',
             'manage-attendance',
+            'manage-schedules',
             'manage-performance',
+            'manage-leaves',
             'view-dashboard',
         ];
- 
+
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
- 
+
         // Create roles and assign existing permissions
         $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
-        // Super admin gets all permissions (handled via Gate::before in AuthServiceProvider usually)
         
         $admin = Role::firstOrCreate(['name' => 'Admin']);
         $admin->givePermissionTo([
             'manage-employees',
             'manage-attendance',
+            'manage-schedules',
             'manage-performance',
+            'manage-leaves',
             'view-dashboard',
         ]);
  
@@ -46,16 +49,6 @@ class RoleAndPermissionSeeder extends Seeder
             'view-dashboard',
         ]);
  
-        // Assign Super Admin role to existing admin users
-        $users = User::where('role', 'admin')->get();
-        foreach ($users as $user) {
-            $user->assignRole($superAdmin);
-        }
 
-        // Assign Karyawan role to existing karyawan users
-        $karyawans = User::where('role', 'karyawan')->get();
-        foreach ($karyawans as $user) {
-            $user->assignRole($karyawan);
-        }
     }
 }
