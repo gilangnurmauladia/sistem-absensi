@@ -37,85 +37,158 @@
 </div>
 
 <div class="row g-4">
-    <div class="col-lg-8">
-        <div class="card-sb h-100">
-            <h6 style="font-size:15px; font-weight:700; margin-bottom:16px;">Ranking Bulan {{ $months[$month] ?? '' }} {{ $year }}</h6>
+    <div class="col-12">
+        <div class="card-sb">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 class="fw-bold mb-0">
+                    @if($step == 1) STEP 1: Matriks Keputusan Awal
+                    @elseif($step == 2) STEP 2: Normalisasi Matriks
+                    @else STEP 3: Perangkingan Akhir @endif
+                </h6>
+                <div class="d-flex gap-2">
+                    @if($step == 1 && $reviews->isNotEmpty())
+                        <a href="{{ route('admin.performances.index', ['month' => $month, 'year' => $year, 'step' => 2]) }}" class="btn-primary-sb">
+                            <i class="fa-solid fa-calculator"></i> Proses Normalisasi
+                        </a>
+                    @elseif($step == 2)
+                        <a href="{{ route('admin.performances.index', ['month' => $month, 'year' => $year, 'step' => 1]) }}" class="btn-outline-sb">
+                            <i class="fa-solid fa-arrow-left"></i> Kembali
+                        </a>
+                        <a href="{{ route('admin.performances.index', ['month' => $month, 'year' => $year, 'step' => 3]) }}" class="btn-primary-sb">
+                            <i class="fa-solid fa-trophy"></i> Hitung Ranking
+                        </a>
+                    @elseif($step == 3)
+                        <a href="{{ route('admin.performances.index', ['month' => $month, 'year' => $year, 'step' => 2]) }}" class="btn-outline-sb">
+                            <i class="fa-solid fa-arrow-left"></i> Kembali
+                        </a>
+                        <a href="{{ route('admin.performances.index', ['month' => $month, 'year' => $year, 'step' => 1]) }}" class="btn-primary-sb">
+                            <i class="fa-solid fa-rotate"></i> Reset
+                        </a>
+                    @endif
+                </div>
+            </div>
+ 
             <div class="table-responsive">
                 <table class="table table-sb mb-0">
                     <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Karyawan</th>
-                            <th>Total Nilai</th>
-                            <th>Grade</th>
-                            <th>Aksi</th>
-                        </tr>
+                        @if($step == 3)
+                            <tr>
+                                <th width="80">Ranking</th>
+                                <th>Karyawan</th>
+                                @foreach($criteria as $key => $config)
+                                    <th class="text-center">{{ $config['label'] }}</th>
+                                @endforeach
+                                <th class="text-center">Nilai Akhir (Vi)</th>
+                                <th width="100">Aksi</th>
+                            </tr>
+                        @else
+                            <tr>
+                                <th width="50">No</th>
+                                <th>Karyawan</th>
+                                @foreach($criteria as $key => $config)
+                                    <th class="text-center">
+                                        {{ $config['label'] }}
+                                        <div class="small fw-normal text-muted">
+                                            ({{ $config['type'] }} | {{ $config['weight']*100 }}%)
+                                        </div>
+                                    </th>
+                                @endforeach
+                                <th width="100">Aksi</th>
+                            </tr>
+                        @endif
                     </thead>
                     <tbody>
                         @forelse($reviews as $idx => $rev)
                         <tr>
                             <td>
-                                @if($idx == 0)
-                                    <span style="font-size:20px;">🥇</span>
-                                @elseif($idx == 1)
-                                    <span style="font-size:20px;">🥈</span>
-                                @elseif($idx == 2)
-                                    <span style="font-size:20px;">🥉</span>
+                                @if($step == 3)
+                                    @if($idx == 0) 🥇 @elseif($idx == 1) 🥈 @elseif($idx == 2) 🥉 @else #{{ $idx + 1 }} @endif
                                 @else
-                                    <span style="font-size:14px; font-weight:700; color:var(--sb-text-muted); padding-left:8px;">#{{ $idx + 1 }}</span>
+                                    {{ $idx + 1 }}
                                 @endif
                             </td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <img src="{{ $rev->employee->photo_url }}" style="width:32px; height:32px; border-radius:8px; object-fit:cover;">
+                                    <div class="user-avatar" style="width:30px; height:30px; font-size:11px;">{{ substr($rev->employee->name, 0, 2) }}</div>
                                     <div>
-                                        <div style="font-size:13px; font-weight:600;">{{ $rev->employee->name }}</div>
-                                        <div style="font-size:11px; color:var(--sb-text-muted);">{{ $rev->employee->position }}</div>
+                                        <div class="fw-bold" style="font-size:13px;">{{ $rev->employee->name }}</div>
+                                        <div class="text-muted" style="font-size:11px;">{{ $rev->employee->position }}</div>
                                     </div>
                                 </div>
                             </td>
+                            @foreach($criteria as $key => $config)
+                                <td class="text-center">
+                                    @if($step == 1)
+                                        <span class="fw-bold">{{ $rev->$key }}</span>
+                                    @else
+                                        <span class="text-primary fw-bold">{{ number_format($matrix[$rev->id][$key], 3) }}</span>
+                                    @endif
+                                </td>
+                            @endforeach
+                            
+                            @if($step == 3)
+                                <td class="text-center">
+                                    <div class="status-badge badge-hadir px-3" style="font-size:14px;">
+                                        {{ number_format($rev->final_score, 3) }}
+                                    </div>
+                                </td>
+                            @endif
+ 
                             <td>
-                                <div style="font-size:15px; font-weight:800; color:var(--sb-primary);">{{ $rev->total_score }}/15</div>
-                            </td>
-                            <td><span class="status-badge bg-{{ $rev->grade_color }} text-white">{{ $rev->grade_label }}</span></td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ route('admin.performances.show', $rev) }}" class="btn-outline-sb" style="padding:4px 8px; font-size:11px;">Detail</a>
-                                    <a href="{{ route('admin.performances.edit', $rev) }}" class="btn-outline-sb" style="padding:4px 8px; font-size:11px;"><i class="fa-solid fa-pen"></i></a>
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <a href="{{ route('admin.performances.edit', $rev) }}" class="btn-outline-sb py-1 px-2" title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="5" class="text-center py-4" style="color:var(--sb-text-muted);">Belum ada penilaian untuk bulan ini</td></tr>
+                        <tr>
+                            <td colspan="{{ count($criteria) + ($step == 3 ? 4 : 3) }}" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fa-solid fa-clipboard-list fa-3x mb-3 opacity-20"></i><br>
+                                    Belum ada data penilaian untuk periode ini.
+                                </div>
+                            </td>
+                        </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    <div class="col-lg-4">
-        <div class="card-sb h-100">
-            <h6 style="font-size:15px; font-weight:700; margin-bottom:16px;">Belum Dinilai</h6>
+ 
+    @if($step == 1)
+    <div class="col-12 mt-4">
+        <div class="card-sb">
+            <h6 class="fw-bold mb-4">Karyawan Belum Dinilai</h6>
             @if($unreviewed->count() > 0)
-                <div class="d-flex flex-column gap-3">
+                <div class="row g-3">
                     @foreach($unreviewed as $emp)
-                    <div class="d-flex justify-content-between align-items-center p-2 border rounded-3" style="border-color:var(--sb-border)!important;">
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="{{ $emp->photo_url }}" style="width:28px; height:28px; border-radius:6px; object-fit:cover;">
-                            <div style="font-size:12px; font-weight:600;">{{ $emp->name }}</div>
+                    <div class="col-md-4">
+                        <div class="d-flex justify-content-between align-items-center p-3 border rounded-3" style="background:#FAF7F2;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-avatar" style="width:36px; height:36px; background:var(--sb-primary-light);">{{ substr($emp->name, 0, 2) }}</div>
+                                <div>
+                                    <div class="fw-bold" style="font-size:13px;">{{ $emp->name }}</div>
+                                    <div class="text-muted" style="font-size:11px;">{{ $emp->position }}</div>
+                                </div>
+                            </div>
+                            <a href="{{ route('admin.performances.create', ['employee_id' => $emp->id, 'month' => $month, 'year' => $year]) }}" class="btn-primary-sb py-1 px-3" style="font-size:12px;">
+                                Nilai
+                            </a>
                         </div>
-                        <a href="{{ route('admin.performances.create', ['employee_id' => $emp->id, 'month' => $month, 'year' => $year]) }}" class="btn-primary-sb" style="padding:4px 10px; font-size:11px;">Nilai</a>
                     </div>
                     @endforeach
                 </div>
             @else
-                <div class="text-center py-4 text-success" style="font-size:13px; font-weight:500;">
-                    <i class="fa-solid fa-check-circle fa-2x mb-2 opacity-50"></i><br>
-                    Semua karyawan sudah dinilai bulan ini.
+                <div class="text-center py-4 text-success">
+                    <i class="fa-solid fa-check-circle fa-2x mb-2"></i><br>
+                    Semua karyawan sudah dinilai.
                 </div>
             @endif
         </div>
     </div>
+    @endif
 </div>
 @endsection

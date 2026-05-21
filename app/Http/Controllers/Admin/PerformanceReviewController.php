@@ -14,24 +14,38 @@ class PerformanceReviewController extends Controller
     {
         $month = $request->month ?? Carbon::now()->month;
         $year  = $request->year  ?? Carbon::now()->year;
-
+        $step = $request->step ?? 1; // 1: Matrix, 2: Normalization, 3: Ranking
+ 
         $reviews = PerformanceReview::with('employee')
             ->where('month', $month)
             ->where('year', $year)
-            ->get()
-            ->sortByDesc(fn($r) => $r->total_score)
-            ->values();
-
-        // Karyawan yang belum dinilai bulan ini
+            ->get();
+ 
+        $matrix = [];
+        $criteria = PerformanceReview::getCriteria();
+ 
+        if ($reviews->isNotEmpty()) {
+            if ($step >= 2) {
+                // Step 2: Normalization
+                $matrix = $this->calculateNormalization($reviews, $criteria);
+            }
+ 
+            if ($step == 3) {
+                // Step 3: Ranking
+                $reviews = $this->calculateRanking($reviews, $matrix, $criteria);
+                $reviews = $reviews->sortByDesc('final_score')->values();
+            }
+        }
+ 
         $reviewedIds = $reviews->pluck('employee_id');
         $unreviewed  = Employee::where('status', 'aktif')
             ->whereNotIn('id', $reviewedIds)
             ->get();
-
+ 
         $months = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',
                    7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
-
-        return view('admin.performances.index', compact('reviews', 'month', 'year', 'unreviewed', 'months'));
+ 
+        return view('admin.performances.index', compact('reviews', 'month', 'year', 'unreviewed', 'months', 'step', 'matrix', 'criteria'));
     }
 
     public function create(Request $request)
@@ -40,11 +54,18 @@ class PerformanceReviewController extends Controller
         $month = $request->month ?? Carbon::now()->month;
         $year  = $request->year  ?? Carbon::now()->year;
         $preEmployee = $request->employee_id ? Employee::find($request->employee_id) : null;
-
+ 
+        $attendanceData = null;
+        if ($preEmployee) {
+            $attendanceData = $this->calculateAutoScores($preEmployee->id, $month, $year);
+        }
+ 
         $months = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',
                    7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
-
-        return view('admin.performances.create', compact('employees', 'month', 'year', 'preEmployee', 'months'));
+        
+        $scoreOptions = PerformanceReview::scoreOptions();
+ 
+        return view('admin.performances.create', compact('employees', 'month', 'year', 'preEmployee', 'months', 'attendanceData', 'scoreOptions'));
     }
 
     public function store(Request $request)
@@ -53,37 +74,36 @@ class PerformanceReviewController extends Controller
             'employee_id' => 'required|exists:employees,id',
             'month'       => 'required|integer|between:1,12',
             'year'        => 'required|integer|min:2020',
-            'punctuality' => 'required|integer|between:1,3',
-            'attendance'  => 'required|integer|between:1,3',
-            'discipline'  => 'required|integer|between:1,3',
-            'cleanliness' => 'required|integer|between:1,3',
-            'friendliness'=> 'required|integer|between:1,3',
+            'responsibility_score' => 'required|integer',
+            'cleanliness_score'    => 'required|integer',
+            'friendliness_score'   => 'required|integer',
             'notes'       => 'nullable|string',
         ]);
-
-        // Cek apakah sudah ada penilaian untuk bulan ini
+ 
         $existing = PerformanceReview::where('employee_id', $request->employee_id)
             ->where('month', $request->month)
             ->where('year', $request->year)
             ->first();
-
+ 
         if ($existing) {
             return back()->withErrors(['employee_id' => 'Karyawan ini sudah dinilai untuk bulan tersebut.'])->withInput();
         }
-
+ 
+        $autoScores = $this->calculateAutoScores($request->employee_id, $request->month, $request->year);
+ 
         PerformanceReview::create([
             'employee_id' => $request->employee_id,
             'reviewed_by' => auth()->id(),
             'month'       => $request->month,
             'year'        => $request->year,
-            'punctuality' => $request->punctuality,
-            'attendance'  => $request->attendance,
-            'discipline'  => $request->discipline,
-            'cleanliness' => $request->cleanliness,
-            'friendliness'=> $request->friendliness,
+            'attendance_score'   => $autoScores['attendance_score'],
+            'tardiness_score'    => $autoScores['tardiness_score'],
+            'responsibility_score' => $request->responsibility_score,
+            'cleanliness_score'    => $request->cleanliness_score,
+            'friendliness_score'   => $request->friendliness_score,
             'notes'       => $request->notes,
         ]);
-
+ 
         return redirect()->route('admin.performances.index', ['month' => $request->month, 'year' => $request->year])
             ->with('success', 'Penilaian karyawan berhasil disimpan.');
     }
@@ -98,26 +118,101 @@ class PerformanceReviewController extends Controller
     {
         $months = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',
                    7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
-        return view('admin.performances.edit', compact('performance', 'months'));
+        $scoreOptions = PerformanceReview::scoreOptions();
+        
+        $attendanceData = $this->calculateAutoScores($performance->employee_id, $performance->month, $performance->year);
+ 
+        return view('admin.performances.edit', compact('performance', 'months', 'scoreOptions', 'attendanceData'));
     }
 
     public function update(Request $request, PerformanceReview $performance)
     {
         $request->validate([
-            'punctuality' => 'required|integer|between:1,3',
-            'attendance'  => 'required|integer|between:1,3',
-            'discipline'  => 'required|integer|between:1,3',
-            'cleanliness' => 'required|integer|between:1,3',
-            'friendliness'=> 'required|integer|between:1,3',
+            'responsibility_score' => 'required|integer',
+            'cleanliness_score'    => 'required|integer',
+            'friendliness_score'   => 'required|integer',
             'notes'       => 'nullable|string',
         ]);
-
+ 
         $performance->update($request->only([
-            'punctuality', 'attendance', 'discipline', 'cleanliness', 'friendliness', 'notes'
+            'responsibility_score', 'cleanliness_score', 'friendliness_score', 'notes'
         ]));
-
+ 
         return redirect()->route('admin.performances.index')
             ->with('success', 'Penilaian berhasil diperbarui.');
+    }
+
+    private function calculateAutoScores($employeeId, $month, $year)
+    {
+        $attendanceCount = \App\Models\Attendance::where('employee_id', $employeeId)
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->whereIn('status', ['hadir', 'terlambat'])
+            ->count();
+ 
+        $tardinessCount = \App\Models\Attendance::where('employee_id', $employeeId)
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->where('status', 'terlambat')
+            ->count();
+ 
+        return [
+            'attendance_count' => $attendanceCount,
+            'tardiness_count'  => $tardinessCount,
+            'attendance_score' => $attendanceCount >= 15 ? 20 : 10,
+            'tardiness_score'  => $tardinessCount < 3 ? 20 : 10,
+        ];
+    }
+ 
+    private function calculateNormalization($reviews, $criteria)
+    {
+        $matrix = [];
+        $maxValues = [];
+        $minValues = [];
+ 
+        foreach ($criteria as $key => $config) {
+            $scores = $reviews->pluck($key)->toArray();
+            if (empty($scores)) continue;
+            $maxValues[$key] = max($scores);
+            $minValues[$key] = min($scores);
+        }
+ 
+        foreach ($reviews as $review) {
+            $row = ['id' => $review->id];
+            foreach ($criteria as $key => $config) {
+                $val = $review->$key;
+                if ($config['type'] == 'benefit') {
+                    $row[$key] = $maxValues[$key] > 0 ? $val / $maxValues[$key] : 0;
+                } else {
+                    $row[$key] = $val > 0 ? $minValues[$key] / $val : 0;
+                }
+            }
+            $matrix[$review->id] = $row;
+        }
+ 
+        return $matrix;
+    }
+ 
+    private function calculateRanking($reviews, $normalizedMatrix, $criteria)
+    {
+        foreach ($reviews as $review) {
+            $preferenceValue = 0;
+            $row = $normalizedMatrix[$review->id];
+            foreach ($criteria as $key => $config) {
+                $preferenceValue += ($config['weight'] * $row[$key]);
+            }
+            $review->final_score = $preferenceValue;
+            $review->save();
+        }
+ 
+        // Update ranks
+        $sorted = $reviews->sortByDesc('final_score')->values();
+        foreach ($sorted as $idx => $review) {
+            $review->rank = $idx + 1;
+            $review->save();
+        }
+ 
+        return $reviews;
     }
 
     public function destroy(PerformanceReview $performance)

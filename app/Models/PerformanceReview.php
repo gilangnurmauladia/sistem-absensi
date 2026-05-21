@@ -14,13 +14,29 @@ class PerformanceReview extends Model
         'reviewed_by',
         'month',
         'year',
-        'punctuality',
-        'attendance',
-        'discipline',
-        'cleanliness',
-        'friendliness',
+        'attendance_score',
+        'tardiness_score',
+        'responsibility_score',
+        'cleanliness_score',
+        'friendliness_score',
+        'final_score',
+        'rank',
         'notes',
     ];
+
+    /**
+     * SAW Criteria Definition
+     */
+    public static function getCriteria(): array
+    {
+        return [
+            'attendance_score'   => ['weight' => 0.30, 'type' => 'benefit', 'label' => 'Kehadiran'],
+            'tardiness_score'    => ['weight' => 0.20, 'type' => 'cost',    'label' => 'Keterlambatan'],
+            'responsibility_score' => ['weight' => 0.20, 'type' => 'benefit', 'label' => 'Tanggung Jawab'],
+            'cleanliness_score'  => ['weight' => 0.15, 'type' => 'benefit', 'label' => 'Kebersihan'],
+            'friendliness_score' => ['weight' => 0.15, 'type' => 'benefit', 'label' => 'Keramahan'],
+        ];
+    }
 
     public function employee()
     {
@@ -32,55 +48,6 @@ class PerformanceReview extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
-    /**
-     * Calculate total score dynamically (in case stored column not available)
-     */
-    public function getTotalScoreAttribute(): int
-    {
-        return $this->punctuality + $this->attendance + $this->discipline + $this->cleanliness + $this->friendliness;
-    }
-
-    /**
-     * Max possible score = 5 indicators × 3 (Tinggi) = 15
-     */
-    public function getMaxScoreAttribute(): int
-    {
-        return 15;
-    }
-
-    public function getScorePercentAttribute(): float
-    {
-        return round(($this->total_score / $this->max_score) * 100, 1);
-    }
-
-    public function getGradeLabelAttribute(): string
-    {
-        $pct = $this->score_percent;
-        if ($pct >= 87) return 'Sangat Baik';
-        if ($pct >= 67) return 'Baik';
-        if ($pct >= 47) return 'Cukup';
-        return 'Kurang';
-    }
-
-    public function getGradeColorAttribute(): string
-    {
-        $pct = $this->score_percent;
-        if ($pct >= 87) return 'success';
-        if ($pct >= 67) return 'primary';
-        if ($pct >= 47) return 'warning';
-        return 'danger';
-    }
-
-    public static function scoreLabel(int $score): string
-    {
-        return match($score) {
-            1 => 'Rendah',
-            2 => 'Sedang',
-            3 => 'Tinggi',
-            default => '-',
-        };
-    }
-
     public function getMonthNameAttribute(): string
     {
         $months = [
@@ -90,5 +57,17 @@ class PerformanceReview extends Model
             10 => 'Oktober', 11 => 'November', 12 => 'Desember',
         ];
         return $months[$this->month] ?? '-';
+    }
+
+    /**
+     * Map manual input labels to scores
+     */
+    public static function scoreOptions(): array
+    {
+        return [
+            10 => 'Baik',
+            15 => 'Cukup',
+            20 => 'Sangat Baik',
+        ];
     }
 }

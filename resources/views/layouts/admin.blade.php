@@ -514,7 +514,23 @@
             </a>
         </li>
     </ul>
-
+ 
+    @hasrole('Super Admin')
+    <div class="sidebar-section">User Management</div>
+    <ul class="sidebar-nav">
+        <li class="nav-item-sb">
+            <a href="{{ route('admin.users.index') }}" class="nav-link-sb {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
+                <i class="fa-solid fa-user-gear"></i> Manajemen User
+            </a>
+        </li>
+        <li class="nav-item-sb">
+            <a href="{{ route('admin.roles.index') }}" class="nav-link-sb {{ request()->routeIs('admin.roles*') ? 'active' : '' }}">
+                <i class="fa-solid fa-shield-halved"></i> Role & Permission
+            </a>
+        </li>
+    </ul>
+    @endhasrole
+ 
     <div class="sidebar-section">Akun</div>
     <ul class="sidebar-nav">
         <li class="nav-item-sb">
@@ -549,7 +565,7 @@
                 <div class="user-avatar">{{ substr(auth()->user()->name, 0, 2) }}</div>
                 <div>
                     <div class="user-name">{{ auth()->user()->name }}</div>
-                    <div class="user-role">Administrator</div>
+                    <div class="user-role">{{ auth()->user()->roles->pluck('name')->implode(', ') ?: 'User' }}</div>
                 </div>
             </div>
         </div>

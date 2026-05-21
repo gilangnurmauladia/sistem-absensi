@@ -51,6 +51,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/leaves/{leave}', [Admin\LeaveController::class, 'show'])->name('leaves.show');
     Route::post('/leaves/{leave}/approve', [Admin\LeaveController::class, 'approve'])->name('leaves.approve');
     Route::post('/leaves/{leave}/reject', [Admin\LeaveController::class, 'reject'])->name('leaves.reject');
+ 
+    // User Management (Super Admin Only)
+    Route::middleware(['role:Super Admin'])->group(function () {
+        Route::resource('users', Admin\UserController::class);
+        Route::resource('roles', Admin\RoleController::class);
+        Route::resource('permissions', Admin\PermissionController::class);
+    });
 });
 
 // =========================================================
