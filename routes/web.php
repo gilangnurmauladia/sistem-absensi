@@ -37,6 +37,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Absensi
     Route::middleware(['permission:manage-attendance'])->group(function () {
         Route::get('/attendances/recap', [Admin\AttendanceController::class, 'recap'])->name('attendances.recap');
+        Route::post('/attendances/quick-update', [Admin\AttendanceController::class, 'quickUpdate'])->name('attendances.quick-update');
         Route::resource('attendances', Admin\AttendanceController::class)->except(['show']);
         Route::get('/attendances/{employee}', [Admin\AttendanceController::class, 'show'])->name('attendances.show');
     });

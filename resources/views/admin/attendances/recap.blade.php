@@ -91,17 +91,29 @@
                     @for($i = 1; $i <= $daysInMonth; $i++)
                         @php
                             $att = $row['attendances']->get($i);
+                            $currentStatus = $att ? $att->status : 'none';
                             $class = 'cell-empty';
-                            $text = '-';
-                            if ($att) {
-                                if ($att->status == 'hadir') { $class = 'cell-h'; $text = 'H'; }
-                                elseif ($att->status == 'terlambat') { $class = 'cell-t'; $text = 'T'; }
-                                elseif ($att->status == 'izin') { $class = 'cell-i'; $text = 'I'; }
-                                elseif ($att->status == 'alpha') { $class = 'cell-a'; $text = 'A'; }
-                                elseif ($att->status == 'libur') { $class = 'cell-l'; $text = 'L'; }
-                            }
+                            if ($currentStatus == 'hadir') $class = 'cell-h';
+                            elseif ($currentStatus == 'terlambat') $class = 'cell-t';
+                            elseif ($currentStatus == 'izin') $class = 'cell-i';
+                            elseif ($currentStatus == 'alpha') $class = 'cell-a';
+                            elseif ($currentStatus == 'libur') $class = 'cell-l';
+                            
+                            $dateStr = sprintf("%s-%02d-%02d", $year, $month, $i);
                         @endphp
-                        <td class="cell-date {{ $class }}">{{ $text }}</td>
+                        <td class="cell-date {{ $class }}" style="padding:0 !important;">
+                            <select class="quick-att-select" 
+                                    data-employee="{{ $row['employee']->id }}" 
+                                    data-date="{{ $dateStr }}"
+                                    style="width:100%; border:none; background:transparent; font-size:10px; text-align:center; cursor:pointer;">
+                                <option value="none" {{ $currentStatus == 'none' ? 'selected' : '' }}>-</option>
+                                <option value="hadir" {{ $currentStatus == 'hadir' ? 'selected' : '' }}>H</option>
+                                <option value="terlambat" {{ $currentStatus == 'terlambat' ? 'selected' : '' }}>T</option>
+                                <option value="izin" {{ $currentStatus == 'izin' ? 'selected' : '' }}>I</option>
+                                <option value="alpha" {{ $currentStatus == 'alpha' ? 'selected' : '' }}>A</option>
+                                <option value="libur" {{ $currentStatus == 'libur' ? 'selected' : '' }}>L</option>
+                            </select>
+                        </td>
                     @endfor
                     <td class="cell-date cell-h">{{ $row['hadir'] }}</td>
                     <td class="cell-date cell-t">{{ $row['terlambat'] }}</td>
@@ -116,3 +128,50 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.querySelectorAll('.quick-att-select').forEach(select => {
+    select.addEventListener('change', function() {
+        const employeeId = this.dataset.employee;
+        const date = this.dataset.date;
+        const status = this.value;
+        const cell = this.closest('td');
+
+        // Optimistic UI update
+        cell.className = 'cell-date';
+        if (status === 'hadir') cell.classList.add('cell-h');
+        else if (status === 'terlambat') cell.classList.add('cell-t');
+        else if (status === 'izin') cell.classList.add('cell-i');
+        else if (status === 'alpha') cell.classList.add('cell-a');
+        else if (status === 'libur') cell.classList.add('cell-l');
+        else cell.classList.add('cell-empty');
+
+        fetch('{{ route("admin.attendances.quick-update") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                employee_id: employeeId,
+                date: date,
+                status: status
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert('Gagal memperbarui absensi');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan jaringan');
+            location.reload();
+        });
+    });
+});
+</script>
+@endpush

@@ -146,7 +146,37 @@ class AttendanceController extends Controller
         $attendance->delete();
         return back()->with('success', 'Data absensi berhasil dihapus.');
     }
-
+ 
+    public function quickUpdate(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'date'        => 'required|date',
+            'status'      => 'required|in:hadir,terlambat,izin,alpha,libur,none',
+        ]);
+ 
+        $attendance = Attendance::where('employee_id', $request->employee_id)
+            ->whereDate('date', $request->date)
+            ->first();
+ 
+        if ($request->status === 'none') {
+            if ($attendance) $attendance->delete();
+            return response()->json(['success' => true, 'message' => 'Absensi dihapus']);
+        }
+ 
+        if ($attendance) {
+            $attendance->update(['status' => $request->status]);
+        } else {
+            Attendance::create([
+                'employee_id' => $request->employee_id,
+                'date'        => $request->date,
+                'status'      => $request->status,
+            ]);
+        }
+ 
+        return response()->json(['success' => true, 'message' => 'Absensi diperbarui']);
+    }
+ 
     public function show(Employee $employee, Request $request)
     {
         $month = $request->month ?? Carbon::now()->month;
