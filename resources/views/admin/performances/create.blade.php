@@ -24,7 +24,7 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
                         <label class="form-label-sb">Karyawan <span style="color:red">*</span></label>
-                        <select name="employee_id" class="form-control-sb form-select-sb" required>
+                        <select name="employee_id" class="form-control-sb form-select-sb" required onchange="window.location.href='{{ route('admin.performances.create') }}?employee_id=' + this.value + '&month={{ $month }}&year={{ $year }}'">
                             <option value="">Pilih Karyawan</option>
                             @foreach($employees as $emp)
                                 <option value="{{ $emp->id }}" {{ (old('employee_id') == $emp->id || ($preEmployee && $preEmployee->id == $emp->id)) ? 'selected' : '' }}>
