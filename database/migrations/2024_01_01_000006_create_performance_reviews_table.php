@@ -12,21 +12,21 @@ return new class extends Migration
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
             $table->foreignId('reviewed_by')->constrained('users')->onDelete('cascade');
-            $table->tinyInteger('month'); // 1-12
+            $table->tinyInteger('month');
             $table->year('year');
 
-            // Indikator penilaian: 1=Rendah, 2=Sedang, 3=Tinggi
-            $table->tinyInteger('punctuality');   // Ketepatan waktu
-            $table->tinyInteger('attendance');    // Kehadiran
-            $table->tinyInteger('discipline');    // Kedisiplinan
-            $table->tinyInteger('cleanliness');   // Kebersihan
-            $table->tinyInteger('friendliness');  // Keramahan
+            // Skor akhir yang dipakai oleh controller dan view
+            $table->integer('attendance_score')->default(0);
+            $table->integer('tardiness_score')->default(0);
+            $table->integer('responsibility_score')->default(0);
+            $table->integer('cleanliness_score')->default(0);
+            $table->integer('friendliness_score')->default(0);
+            $table->decimal('final_score', 5, 2)->nullable();
+            $table->integer('rank')->nullable();
 
-            $table->tinyInteger('total_score')->storedAs('punctuality + attendance + discipline + cleanliness + friendliness');
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            // Satu karyawan hanya punya satu penilaian per bulan per tahun
             $table->unique(['employee_id', 'month', 'year']);
         });
     }

@@ -11,7 +11,7 @@
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -34,7 +34,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: var(--sb-bg);
             color: var(--sb-text);
             min-height: 100vh;
@@ -64,7 +64,7 @@
 
         .sidebar-brand .brand-icon {
             width: 38px; height: 38px;
-            background: var(--sb-primary);
+            background: transparent !important;
             border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             font-size: 16px; color: white;
@@ -464,7 +464,9 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <a href="{{ route('admin.dashboard') }}" class="brand-logo">
-            <div class="brand-icon"><i class="fa-solid fa-mug-hot"></i></div>
+            <div class="brand-icon"><img src="{{ asset('logosunsetbaru.png') }}"
+            alt="Logo" 
+            style="width:120px;height:120px;object-fit:contain;"></div>
             <div>
                 <div class="brand-name">Sunset Bridge</div>
                 <div class="brand-sub">Coffee & Eatry</div>
@@ -499,11 +501,15 @@
                 <i class="fa-solid fa-clock-rotate-left"></i> Absensi
             </a>
         </li>
+        @role('Super Admin')
         <li class="nav-item-sb">
             <a href="{{ route('admin.performances.index') }}" class="nav-link-sb {{ request()->routeIs('admin.performances*') ? 'active' : '' }}">
                 <i class="fa-solid fa-chart-bar"></i> Penilaian Kinerja
             </a>
         </li>
+        @endrole('Super Admin')
+
+        @role('Super Admin')
         <li class="nav-item-sb">
             <a href="{{ route('admin.leaves.index') }}" class="nav-link-sb {{ request()->routeIs('admin.leaves*') ? 'active' : '' }}">
                 <i class="fa-solid fa-file-circle-check"></i> Manajemen Izin
@@ -513,6 +519,7 @@
                 @endif
             </a>
         </li>
+        @endrole('Super Admin')
     </ul>
  
     @hasrole('Super Admin')
@@ -555,12 +562,15 @@
             <span class="topnav-title">@yield('page-title', 'Dashboard')</span>
         </div>
         <div class="topnav-right">
-            <a href="{{ route('admin.leaves.index') }}" class="topnav-bell" title="Notifikasi Izin">
-                <i class="fa-regular fa-bell"></i>
-                @if(isset($pendingLeaves) && $pendingLeaves > 0)
-                    <span class="bell-badge">{{ $pendingLeaves }}</span>
-                @endif
-            </a>
+@role('Super Admin')
+<a href="{{ route('admin.leaves.index') }}" class="topnav-bell" title="Notifikasi Izin">
+    <i class="fa-solid fa-bell"></i>
+
+    @if($pendingLeaves > 0)
+        <span class="badge-notif">{{ $pendingLeaves }}</span>
+    @endif
+</a>
+@endrole
             <div class="user-info">
                 <div class="user-avatar">{{ substr(auth()->user()->name, 0, 2) }}</div>
                 <div>

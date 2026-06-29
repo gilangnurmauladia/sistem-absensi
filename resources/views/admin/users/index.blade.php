@@ -4,6 +4,35 @@
 @section('page-title', 'Manajemen User')
  
 @section('content')
+
+<style>
+    .users-pagination {
+    margin-top: 24px;
+}
+
+.users-pagination nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.users-pagination nav p {
+    margin: 0;
+    color: #6b7280;
+}
+
+.users-pagination nav a,
+.users-pagination nav span span {
+    text-decoration: none;
+    border-radius: 8px;
+}
+
+.users-pagination svg {
+    width: 18px;
+    height: 18px;
+}
+</style>
 <div class="row">
     <div class="col-12">
         <div class="card-sb">
@@ -60,7 +89,8 @@
                 </table>
             </div>
  
-            <div class="mt-4">
+            <div class="mt-4 users-pagination
+            ">
                 {{ $users->links() }}
             </div>
         </div>

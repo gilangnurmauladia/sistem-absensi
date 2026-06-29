@@ -68,28 +68,48 @@
                             <input type="text" class="form-control-sb bg-light" readonly 
                                 value="{{ $attendanceData ? ($attendanceData['tardiness_count'].' kali = '.$attendanceData['tardiness_score'].' poin') : 'Pilih karyawan dulu' }}">
                         </div>
-                        <p class="small text-muted mt-1">Otomatis dihitung: < 3 kali = 20, >= 3 kali = 10</p>
+                        <p class="small text-muted mt-1">Otomatis dihitung dari keterlambatan</p>
                     </div>
  
-                    <div class="col-md-4">
-                        <label class="form-label-sb">Tanggung Jawab (Benefit - 20%) <span style="color:red">*</span></label>
-                        <select name="responsibility_score" class="form-control-sb form-select-sb" required>
-                            <option value="">Pilih Nilai</option>
-                            @foreach($scoreOptions as $val => $lbl)
-                                <option value="{{ $val }}" {{ old('responsibility_score') == $val ? 'selected' : '' }}>{{ $val }} - {{ $lbl }}</option>
-                            @endforeach
-                        </select>
+                <div class="col-md-4">
+                     <label class="form-label-sb">Tanggung Jawab (Benefit - 20%)</label>
+                     <input type="text"class="form-control-sb bg-light"readonly
+                                value="{{ $attendanceData ? ($attendanceData['responsibility_score'].' poin - Otomatis') : 'Pilih karyawan dulu' }}">
+
+                        <p class="small text-muted mt-1">Nilai otomatis dari kehadiran dan keterlambatan</p>
                     </div>
  
-                    <div class="col-md-4">
-                        <label class="form-label-sb">Kebersihan (Benefit - 15%) <span style="color:red">*</span></label>
-                        <select name="cleanliness_score" class="form-control-sb form-select-sb" required>
-                            <option value="">Pilih Nilai</option>
-                            @foreach($scoreOptions as $val => $lbl)
-                                <option value="{{ $val }}" {{ old('cleanliness_score') == $val ? 'selected' : '' }}>{{ $val }} - {{ $lbl }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="col-md-4">
+    <label class="form-label-sb">
+        Kebersihan (Benefit - 15%) <span style="color:red">*</span>
+    </label>
+
+    <div class="p-3 rounded border bg-light">
+        <label class="d-block mb-2">
+            <input type="checkbox" name="meja_bersih">
+            Meja bersih
+        </label>
+
+        <label class="d-block mb-2">
+            <input type="checkbox" name="lantai_bersih">
+            Lantai bersih
+        </label>
+
+        <label class="d-block mb-2">
+            <input type="checkbox" name="peralatan_bersih">
+            Peralatan bersih
+        </label>
+
+        <label class="d-block">
+            <input type="checkbox" name="area_kerja_bersih">
+            Area kerja bersih
+        </label>
+    </div>
+
+    <p class="small text-muted mt-1">
+        4 checklist = 15 poin, 2-3 checklist = 10 poin, 0-1 checklist = 5 poin.
+    </p>
+</div>
  
                     <div class="col-md-4">
                         <label class="form-label-sb">Keramahan (Benefit - 15%) <span style="color:red">*</span></label>

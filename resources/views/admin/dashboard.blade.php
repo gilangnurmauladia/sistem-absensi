@@ -73,7 +73,9 @@
                 <h6 class="fw-700 mb-0" style="font-size:15px; font-weight:700;">Grafik Kehadiran 7 Hari Terakhir</h6>
                 <a href="{{ route('admin.attendances.recap') }}" class="btn-outline-sb" style="font-size:12px; padding:5px 12px;">Lihat Rekap</a>
             </div>
-            <canvas id="attendanceChart" height="120"></canvas>
+            <div style="height:260px;">
+    <canvas id="attendanceChart"></canvas>
+</div>
         </div>
     </div>
 
@@ -82,7 +84,9 @@
         <div class="card-sb h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-700 mb-0" style="font-size:15px; font-weight:700;">Top Performa Bulan Ini</h6>
+                @role('Super Admin')
                 <a href="{{ route('admin.performances.index') }}" class="btn-outline-sb" style="font-size:12px; padding:5px 12px;">Lihat Semua</a>
+                @endrole('Super Admin')
             </div>
             @forelse($rankingData as $idx => $review)
             <div class="ranking-row">
@@ -111,7 +115,9 @@
                     <i class="fa-solid fa-clock" style="color:#D4860A;"></i>
                     <span style="font-size:13px; font-weight:600; color:#D4860A;">{{ $pendingLeaves }} izin menunggu persetujuan</span>
                 </div>
+                @role('Super Admin')
                 <a href="{{ route('admin.leaves.index', ['status'=>'pending']) }}" class="btn-primary-sb mt-2 w-100 justify-content-center" style="font-size:12px; padding:7px;">Proses Sekarang</a>
+                @endrole('Super Admin')
             </div>
             @endif
         </div>
@@ -201,28 +207,46 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const ctx = document.getElementById('attendanceChart').getContext('2d');
-const labels = {!! json_encode(array_column($last7Days, 'date')) !!};
+const canvas = document.getElementById('attendanceChart');
+
 const hadirData = {!! json_encode(array_column($last7Days, 'hadir')) !!};
 const izinData  = {!! json_encode(array_column($last7Days, 'izin')) !!};
 const alphaData = {!! json_encode(array_column($last7Days, 'alpha')) !!};
+const terlambatData = {!! json_encode(array_column($last7Days, 'terlambat')) !!};
 
-new Chart(ctx, {
-    type: 'bar',
+const totalHadir = hadirData.reduce((a, b) => a + Number(b), 0);
+const totalIzin  = izinData.reduce((a, b) => a + Number(b), 0);
+const totalAlpha = alphaData.reduce((a, b) => a + Number(b), 0);
+const totalTerlambat = terlambatData.reduce((a, b) => a + Number(b), 0);
+
+new Chart(canvas, {
+    type: 'doughnut',
     data: {
-        labels,
-        datasets: [
-            { label: 'Hadir', data: hadirData, backgroundColor: '#4CAF50', borderRadius: 6 },
-            { label: 'Izin',  data: izinData,  backgroundColor: '#2196F3', borderRadius: 6 },
-            { label: 'Alpha', data: alphaData, backgroundColor: '#F44336', borderRadius: 6 },
-        ]
+        labels: ['Hadir', 'Terlambat', 'Izin', 'Alpha'],
+        datasets: [{
+            data: [
+    totalHadir,
+    totalTerlambat,
+    totalIzin,
+    totalAlpha
+],
+            backgroundColor: [
+    '#4CAF50',
+    '#FACC15',
+    '#2196F3',
+    '#F44336'
+],
+            borderWidth: 0
+        }]
     },
     options: {
         responsive: true,
-        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Plus Jakarta Sans', size: 12 } } } },
-        scales: {
-            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans' } } },
-            y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Plus Jakarta Sans' } }, grid: { color: '#F0F2F5' } }
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
         }
     }
 });

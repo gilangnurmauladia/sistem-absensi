@@ -25,9 +25,10 @@ Route::get('/', function () {
 // ADMIN ROUTES
 // =========================================================
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
-
     // Dashboard
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('tasks', Admin\TaskController::class);
+
 
     // Karyawan (CRUD)
     Route::middleware(['permission:manage-employees'])->group(function () {
@@ -47,7 +48,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::get('/schedules', [Admin\ScheduleController::class, 'index'])->name('schedules.index');
         Route::get('/schedules/create', [Admin\ScheduleController::class, 'create'])->name('schedules.create');
         Route::post('/schedules', [Admin\ScheduleController::class, 'store'])->name('schedules.store');
-        Route::delete('/schedules/{schedule}', [Admin\ScheduleController::class, 'destroy'])->name('schedules.destroy');
+        Route::delete('/schedules/  {schedule}', [Admin\ScheduleController::class, 'destroy'])->name('schedules.destroy');
     });
 
     // Penilaian Karyawan

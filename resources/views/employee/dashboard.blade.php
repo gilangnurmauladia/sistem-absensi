@@ -79,22 +79,22 @@
     <div class="col-lg-8">
         <h6 style="font-size:15px; font-weight:700; margin-bottom:16px;">Absensi Bulan Ini</h6>
         <div class="stat-grid mb-4">
-            <div class="stat-card-emp">
+            <div class="stat-card-emp hadir">
                 <div class="stat-value">{{ $hariHadir }}</div>
                 <div class="stat-label">Hari Hadir</div>
                 <div class="stat-sub">dari {{ $totalWorkDays }} hari kerja</div>
             </div>
-            <div class="stat-card-emp">
+            <div class="stat-card-emp terlambat">
                 <div class="stat-value">{{ $terlambat }}</div>
                 <div class="stat-label">Terlambat</div>
                 <div class="stat-sub">sekali bulan ini</div>
             </div>
-            <div class="stat-card-emp">
+            <div class="stat-card-emp izin">
                 <div class="stat-value">{{ $izinApproved }}</div>
                 <div class="stat-label">Izin Disetujui</div>
                 <div class="stat-sub">{{ $izinApproved }} hari diizinkan</div>
             </div>
-            <div class="stat-card-emp">
+            <div class="stat-card-emp alpha">
                 <div class="stat-value">{{ $alpha }}</div>
                 <div class="stat-label">Tanpa Keterangan</div>
                 <div class="stat-sub">{{ $alpha == 0 ? 'catatan bersih' : 'perlu perhatian' }}</div>

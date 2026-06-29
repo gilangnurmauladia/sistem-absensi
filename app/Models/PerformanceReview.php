@@ -65,9 +65,9 @@ class PerformanceReview extends Model
     public static function scoreOptions(): array
     {
         return [
-            10 => 'Baik',
-            15 => 'Cukup',
-            20 => 'Sangat Baik',
+            5 => 'Baik',
+            10 => 'Cukup',
+            15 => 'Sangat Baik',
         ];
     }
 }

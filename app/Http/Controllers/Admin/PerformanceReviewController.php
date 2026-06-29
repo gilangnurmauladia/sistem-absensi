@@ -74,8 +74,6 @@ class PerformanceReviewController extends Controller
             'employee_id' => 'required|exists:employees,id',
             'month'       => 'required|integer|between:1,12',
             'year'        => 'required|integer|min:2020',
-            'responsibility_score' => 'required|integer',
-            'cleanliness_score'    => 'required|integer',
             'friendliness_score'   => 'required|integer',
             'notes'       => 'nullable|string',
         ]);
@@ -88,8 +86,15 @@ class PerformanceReviewController extends Controller
         if ($existing) {
             return back()->withErrors(['employee_id' => 'Karyawan ini sudah dinilai untuk bulan tersebut.'])->withInput();
         }
- 
-        $autoScores = $this->calculateAutoScores($request->employee_id, $request->month, $request->year);
+        
+        $autoScores = $this->calculateAutoScores(
+            $request->employee_id,
+            $request->month,
+            $request->year
+
+        );
+
+        $cleanlinessScore = $this->calculateCleanlinessScore($request);
  
         PerformanceReview::create([
             'employee_id' => $request->employee_id,
@@ -98,8 +103,8 @@ class PerformanceReviewController extends Controller
             'year'        => $request->year,
             'attendance_score'   => $autoScores['attendance_score'],
             'tardiness_score'    => $autoScores['tardiness_score'],
-            'responsibility_score' => $request->responsibility_score,
-            'cleanliness_score'    => $request->cleanliness_score,
+            'responsibility_score' => $autoScores['responsibility_score'],
+            'cleanliness_score' => $cleanlinessScore,
             'friendliness_score'   => $request->friendliness_score,
             'notes'       => $request->notes,
         ]);
@@ -128,42 +133,114 @@ class PerformanceReviewController extends Controller
     public function update(Request $request, PerformanceReview $performance)
     {
         $request->validate([
-            'responsibility_score' => 'required|integer',
-            'cleanliness_score'    => 'required|integer',
-            'friendliness_score'   => 'required|integer',
-            'notes'       => 'nullable|string',
+            'friendliness_score' => 'required|integer',
+            'notes'             => 'nullable|string',
         ]);
- 
-        $performance->update($request->only([
-            'responsibility_score', 'cleanliness_score', 'friendliness_score', 'notes'
-        ]));
+
+        // Hitung ulang nilai otomatis agar halaman edit sama seperti input penilaian.
+        $autoScores = $this->calculateAutoScores(
+            $performance->employee_id,
+            $performance->month,
+            $performance->year
+        );
+
+        $cleanlinessScore = $this->calculateCleanlinessScore($request);
+
+        $performance->update([
+            'attendance_score'     => $autoScores['attendance_score'],
+            'tardiness_score'      => $autoScores['tardiness_score'],
+            'responsibility_score' => $autoScores['responsibility_score'],
+            'cleanliness_score'    => $cleanlinessScore,
+            'friendliness_score'   => $request->friendliness_score,
+            'notes'                => $request->notes,
+        ]);
  
         return redirect()->route('admin.performances.index')
             ->with('success', 'Penilaian berhasil diperbarui.');
     }
 
     private function calculateAutoScores($employeeId, $month, $year)
-    {
-        $attendanceCount = \App\Models\Attendance::where('employee_id', $employeeId)
-            ->whereMonth('date', $month)
-            ->whereYear('date', $year)
-            ->whereIn('status', ['hadir', 'terlambat'])
-            ->count();
- 
-        $tardinessCount = \App\Models\Attendance::where('employee_id', $employeeId)
-            ->whereMonth('date', $month)
-            ->whereYear('date', $year)
-            ->where('status', 'terlambat')
-            ->count();
- 
-        return [
-            'attendance_count' => $attendanceCount,
-            'tardiness_count'  => $tardinessCount,
-            'attendance_score' => $attendanceCount >= 15 ? 20 : 10,
-            'tardiness_score'  => $tardinessCount < 3 ? 20 : 10,
-        ];
+{
+    $attendanceCount = \App\Models\Attendance::where('employee_id', $employeeId)
+        ->whereMonth('date', $month)
+        ->whereYear('date', $year)
+        ->whereIn('status', ['hadir', 'terlambat'])
+        ->count();
+
+    $tardinessCount = \App\Models\Attendance::where('employee_id', $employeeId)
+        ->whereMonth('date', $month)
+        ->whereYear('date', $year)
+        ->where('status', 'terlambat')
+        ->count();
+
+    // AUTO RESPONSIBILITY SCORE
+    $responsibilityScore = 10;
+
+    if ($attendanceCount >= 15 && $tardinessCount < 3) {
+        $responsibilityScore = 20;
+    } elseif ($attendanceCount >= 10) {
+        $responsibilityScore = 15;
     }
+
+    // TOTAL HARI KERJA
+    $workingDays = 24;
+
+    // HITUNG NILAI KETERLAMBATAN
+    $tardinessScore = 20 - (($tardinessCount / $workingDays) * 20);
+
+    // BULATKAN
+    $tardinessScore = round($tardinessScore);
+
+    // JIKA MINUS JADI 0
+    if ($tardinessScore < 0) {
+    $tardinessScore = 0;
+    }
+
+    return [
+        'attendance_count' => $attendanceCount,
+        'tardiness_count'  => $tardinessCount,
+
+        'attendance_score' => $attendanceCount >= 15 ? 20 : 10,
+
+        'tardiness_score' => $tardinessScore,
+
+        // NEW
+        'responsibility_score' => $responsibilityScore,
+    ];
+}
  
+    private function calculateCleanlinessScore($request)
+{
+    $total = 0;
+
+    if ($request->has('meja_bersih')) {
+        $total++;
+    }
+
+    if ($request->has('lantai_bersih')) {
+        $total++;
+    }
+
+    if ($request->has('peralatan_bersih')) {
+        $total++;
+    }
+
+    if ($request->has('area_kerja_bersih')) {
+        $total++;
+    }
+
+    // MAX 15
+    if ($total >= 4) {
+        return 15;
+    }
+
+    if ($total >= 2) {
+        return 10;
+    }
+
+    return 5;
+}
+
     private function calculateNormalization($reviews, $criteria)
     {
         $matrix = [];

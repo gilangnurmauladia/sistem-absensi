@@ -1,77 +1,50 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('performance_reviews', function (Blueprint $table) {
-            if (Schema::hasColumn('performance_reviews', 'total_score')) {
-                $table->dropColumn('total_score');
+        // Dibuat aman untuk MariaDB/Laragon. Tidak memakai renameColumn Laravel
+        // karena bisa menghasilkan SQL "RENAME COLUMN" yang sering error di MariaDB.
+        $renames = [
+            'punctuality'  => 'tardiness_score',
+            'attendance'   => 'attendance_score',
+            'discipline'   => 'responsibility_score',
+            'cleanliness'  => 'cleanliness_score',
+            'friendliness' => 'friendliness_score',
+        ];
+
+        foreach ($renames as $old => $new) {
+            if (Schema::hasColumn('performance_reviews', $old) && !Schema::hasColumn('performance_reviews', $new)) {
+                DB::statement("ALTER TABLE performance_reviews CHANGE `$old` `$new` INT NOT NULL DEFAULT 0");
             }
- 
-            if (Schema::hasColumn('performance_reviews', 'punctuality')) {
-                $table->renameColumn('punctuality', 'tardiness_score');
-            }
-            if (Schema::hasColumn('performance_reviews', 'attendance')) {
-                $table->renameColumn('attendance', 'attendance_score');
-            }
-            if (Schema::hasColumn('performance_reviews', 'discipline')) {
-                $table->renameColumn('discipline', 'responsibility_score');
-            }
-            if (Schema::hasColumn('performance_reviews', 'cleanliness')) {
-                $table->renameColumn('cleanliness', 'cleanliness_score');
-            }
-            if (Schema::hasColumn('performance_reviews', 'friendliness')) {
-                $table->renameColumn('friendliness', 'friendliness_score');
-            }
-        });
- 
-        Schema::table('performance_reviews', function (Blueprint $table) {
-            if (!Schema::hasColumn('performance_reviews', 'final_score')) {
-                $table->decimal('final_score', 5, 2)->nullable()->after('friendliness_score');
-            }
-            if (!Schema::hasColumn('performance_reviews', 'rank')) {
-                $table->integer('rank')->nullable()->after('final_score');
-            }
-        });
+        }
+
+        if (Schema::hasColumn('performance_reviews', 'total_score')) {
+            DB::statement('ALTER TABLE performance_reviews DROP COLUMN `total_score`');
+        }
+
+        if (!Schema::hasColumn('performance_reviews', 'final_score')) {
+            DB::statement('ALTER TABLE performance_reviews ADD `final_score` DECIMAL(5,2) NULL AFTER `friendliness_score`');
+        }
+
+        if (!Schema::hasColumn('performance_reviews', 'rank')) {
+            DB::statement('ALTER TABLE performance_reviews ADD `rank` INT NULL AFTER `final_score`');
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('performance_reviews', function (Blueprint $table) {
-            if (Schema::hasColumn('performance_reviews', 'final_score')) {
-                $table->dropColumn(['final_score', 'rank']);
-            }
-            
-            if (Schema::hasColumn('performance_reviews', 'tardiness_score')) {
-                $table->renameColumn('tardiness_score', 'punctuality');
-            }
-            if (Schema::hasColumn('performance_reviews', 'attendance_score')) {
-                $table->renameColumn('attendance_score', 'attendance');
-            }
-            if (Schema::hasColumn('performance_reviews', 'responsibility_score')) {
-                $table->renameColumn('responsibility_score', 'discipline');
-            }
-            if (Schema::hasColumn('performance_reviews', 'cleanliness_score')) {
-                $table->renameColumn('cleanliness_score', 'cleanliness');
-            }
-            if (Schema::hasColumn('performance_reviews', 'friendliness_score')) {
-                $table->renameColumn('friendliness_score', 'friendliness');
-            }
-        });
- 
-        Schema::table('performance_reviews', function (Blueprint $table) {
-             $table->tinyInteger('total_score')->storedAs('punctuality + attendance + discipline + cleanliness + friendliness');
-        });
+        if (Schema::hasColumn('performance_reviews', 'rank')) {
+            DB::statement('ALTER TABLE performance_reviews DROP COLUMN `rank`');
+        }
+
+        if (Schema::hasColumn('performance_reviews', 'final_score')) {
+            DB::statement('ALTER TABLE performance_reviews DROP COLUMN `final_score`');
+        }
     }
 };

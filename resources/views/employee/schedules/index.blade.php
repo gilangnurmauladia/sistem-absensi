@@ -25,7 +25,7 @@
 @section('content')
 <div class="row g-4 mb-4">
     <div class="col-md-4">
-        <div class="card-sb d-flex align-items-center gap-3">
+        <div class="card-sb shift-pagi d-flex align-items-center gap-3">
             <div class="stat-icon blue"><i class="fa-solid fa-sun"></i></div>
             <div>
                 <div class="stat-value">{{ $pagiCount }}</div>
@@ -34,7 +34,7 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card-sb d-flex align-items-center gap-3">
+        <div class="card-sb shift-siang d-flex align-items-center gap-3">
             <div class="stat-icon amber"><i class="fa-solid fa-moon"></i></div>
             <div>
                 <div class="stat-value">{{ $siangCount }}</div>
@@ -43,7 +43,7 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card-sb d-flex align-items-center gap-3">
+        <div class="card-sb shift-libur d-flex align-items-center gap-3">
             <div class="stat-icon red"><i class="fa-solid fa-bed"></i></div>
             <div>
                 <div class="stat-value">{{ $liburCount }}</div>

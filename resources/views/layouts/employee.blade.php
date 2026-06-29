@@ -8,19 +8,19 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --sb-primary: #C17D3C;
             --sb-primary-dark: #8B4513;
             --sb-primary-light: #E8A96A;
-            --sb-bg: #F8F9FB;
-            --sb-sidebar-bg: #FFFFFF;
+            --sb-bg: #ffffffff;
+            --sb-sidebar-bg: #ffffffff;
             --sb-text: #1A1A1A;
             --sb-text-muted: #6B6B6B;
-            --sb-border: #E8ECF0;
-            --sb-white: #FFFFFF;
+            --sb-border: #c71784ff;
+            --sb-white: #FFE26D;
             --sb-success: #2D7A51;
             --sb-warning: #D4860A;
             --sb-danger: #C0392B;
@@ -29,7 +29,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: var(--sb-bg);
             color: var(--sb-text);
             min-height: 100vh;
@@ -108,7 +108,19 @@
             position: sticky; top: 0; z-index: 100;
         }
 
-        .topnav-title { font-size: 16px; font-weight: 700; }
+
+        .topnav-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1A1A1A;
+        }
+
+        .topnav-subtitle {
+            font-size: 13px;
+            color: #1A1A1A;
+            margin-top: 2px;
+            font-weight: 500;
+        }
 
         .topnav-right { display: flex; align-items: center; gap: 12px; }
 
@@ -159,13 +171,68 @@
             display: grid; grid-template-columns: repeat(2, 1fr);
             gap: 12px;
         }
-
+        
         .stat-card-emp {
-            background: white;
-            border: 1px solid var(--sb-border);
-            border-radius: 12px;
-            padding: 16px;
-        }
+    border-radius: 12px;
+    padding: 16px;
+}
+
+/* HADIR */
+.stat-card-emp.hadir {
+    background: #E8F5EE;
+    border: 1px solid #00ff5eff;
+}
+
+/* TERLAMBAT */
+.stat-card-emp.terlambat {
+    background: #FFF4DF;
+    border: 1px solid #ffaa00ff;
+}
+
+/* IZIN */
+.stat-card-emp.izin {
+    background: #EAF4FF;
+    border: 1px solid #0077ffff;
+}
+
+/* ALPHA */
+.stat-card-emp.alpha {
+    background: #FFECEC;
+    border: 1px solid #e00e0eff;
+}
+
+/* SHIFT PAGI */
+.stat-card-emp.pagi{
+    background:#EAF4FF;
+    border:1px solid #B8D9FF;
+}
+
+/* SHIFT SIANG */
+.stat-card-emp.siang{
+    background:#FFF4DF;
+    border:1px solid #FFD98E;
+}
+
+/* LIBUR */
+.stat-card-emp.libur{
+    background:#FFECEC;
+    border:1px solid #FFBDBD;
+}
+
+.shift-pagi{
+    background:#EAF4FF;
+    border:1px solid #0573f1ff;
+}
+
+.shift-siang{
+    background:#FFF4DF;
+    border:1px solid #ffaa00ff;
+}
+
+.shift-libur{
+    background:#FFECEC;
+    border:1px solid #ff0000ff;
+}
 
         .stat-value { font-size: 28px; font-weight: 800; line-height: 1; }
         .stat-label { font-size: 12px; color: var(--sb-text-muted); margin-top: 3px; }
@@ -289,7 +356,9 @@
 <aside class="sidebar">
     <div class="sidebar-brand">
         <a href="{{ route('employee.dashboard') }}" class="brand-logo">
-            <div class="brand-icon"><i class="fa-solid fa-mug-hot"></i></div>
+            <img src="{{ asset('logosunsetbaru.png') }}"
+            alt="Logo"
+            style="width:75px;height75px;object-fit:contain;flex-shrink:0;">
             <div>
                 <div class="brand-name">Sunset Bridge</div>
                 <div class="brand-sub">Coffee & Eatry</div>
@@ -336,7 +405,15 @@
 
 <div class="main-content">
     <nav class="topnav">
-        <div class="topnav-title">@yield('page-title', 'Dashboard')</div>
+        @php
+    $namaLengkap = auth()->user()->employee->name ?? auth()->user()->name;
+    $namaDepan = explode(' ', $namaLengkap)[0];
+@endphp
+
+<div>
+    <div class="topnav-title">Halo, {{ $namaDepan }}!</div>
+    <div class="topnav-subtitle">Semangat hari ini, jangan lupa absen!!</div>
+</div>
         <div class="topnav-right">
             <a href="{{ route('employee.leaves.create') }}" class="btn-leave">
                 <i class="fa-solid fa-plus"></i> Ajukan Izin

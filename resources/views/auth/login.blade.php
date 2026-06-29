@@ -6,7 +6,7 @@
     <title>Login - Sunset Bridge</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -15,7 +15,7 @@
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: var(--sb-bg);
             min-height: 100vh;
             display: flex;
@@ -38,9 +38,9 @@
 
         .login-right {
             flex: 1;
-            background-image: url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop'); /* Gambar ilustrasi kafe senja */
-            background-size: cover;
-            background-position: center;
+            background-image: url("{{ asset('images/login-bg.png') }}"); /* Gambar ilustrasi kafe senja */
+            background-size: 90%;
+            background-position: right center;
             position: relative;
         }
 
@@ -55,12 +55,24 @@
             text-align: center;
             margin-bottom: 40px;
             margin-top: -60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .brand-logo-img {
-            width: 80px;
+            width: 180px;
+            height: auto;
             margin-bottom: 10px;
+            animation: logoFloat 3s ease-in-out infinite;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15));
         }
+
+        @keyframes logoFloat{
+            0%{transform: translateY(0px);}
+            50%{transform: translateY(-6px);}
+            100%{transform: translateY(0px);}
+}
 
         .brand-title {
             font-size: 28px;
@@ -68,13 +80,42 @@
             color: #1A1A1A;
             margin: 0;
             letter-spacing: -0.5px;
+            animation: textFloat 4s ease-in-out infinite;
         }
+
+        @keyframes textFloat{
+    0%{
+        transform: translateY(0px);
+    }
+
+    50%{
+        transform: translateY(-6px);
+    }
+
+    100%{
+        transform: translateY(0px);
+    }
+}
 
         .brand-subtitle {
             font-size: 16px;
             color: #4A4A4A;
+            animation: textFloat 4s ease-in-out infinite;
         }
 
+        @keyframes textFloat{
+    0%{
+        transform: translateY(0px);
+    }
+
+    50%{
+        transform: translateY(-6px);
+    }
+
+    100%{
+        transform: translateY(0px);
+    }
+}
         .login-card {
             background: #F8F9FB;
             width: 100%;
@@ -84,6 +125,13 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.08);
             position: relative;
             z-index: 10;
+            animation: floating 4s ease-in-out infinite;
+        }
+
+        @keyframes floating{
+            0%{transform: translateY(0px);}
+            50%{transform: translateY(-6px);}
+            100%{transform: translateY(0px);}
         }
 
         .welcome-title {
@@ -178,9 +226,9 @@
         <div class="brand-section">
             <svg class="brand-logo-img" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <!-- Simple placeholder logo SVG for Sunset Bridge -->
-                <path d="M50 10 L80 80 L20 80 Z" fill="#E8A96A"/>
-                <path d="M50 30 L70 80 L30 80 Z" fill="#C17D3C"/>
-                <circle cx="50" cy="50" r="15" fill="#F5A623"/>
+                <img src="{{ asset('logosunsetbaru.png') }}"
+                class="brand-logo-img"
+     a          lt="Logo">        
             </svg>
             <h1 class="brand-title">Sunset Bridge</h1>
             <div class="brand-subtitle">Coffee & Eatry</div>

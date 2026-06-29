@@ -19,7 +19,8 @@
     <div class="col-lg-8">
         <div class="card-sb">
             <form action="{{ route('admin.performances.update', $performance) }}" method="POST">
-                @csrf @method('PUT')
+                @csrf
+                @method('PUT')
                 
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
@@ -45,42 +46,69 @@
                     <div class="col-md-6">
                         <label class="form-label-sb">Kehadiran (Benefit - 30%)</label>
                         <div class="d-flex gap-2 align-items-center">
-                            <input type="text" class="form-control-sb bg-light" readonly 
-                                value="{{ $attendanceData['attendance_count'] }} hari = {{ $performance->attendance_score }} poin">
+                            <input type="text" class="form-control-sb bg-light" readonly
+                                value="{{ $attendanceData ? ($attendanceData['attendance_count'].' hari = '.$attendanceData['attendance_score'].' poin') : 'Data tidak tersedia' }}">
                         </div>
-                        <p class="small text-muted mt-1">Otomatis dihitung sistem (Readonly)</p>
+                        <p class="small text-muted mt-1">Otomatis dihitung: &lt; 15 hari = 10, &gt;= 15 hari = 20</p>
                     </div>
  
                     <div class="col-md-6">
                         <label class="form-label-sb">Keterlambatan (Cost - 20%)</label>
                         <div class="d-flex gap-2 align-items-center">
-                            <input type="text" class="form-control-sb bg-light" readonly 
-                                value="{{ $attendanceData['tardiness_count'] }} kali = {{ $performance->tardiness_score }} poin">
+                            <input type="text" class="form-control-sb bg-light" readonly
+                                value="{{ $attendanceData ? ($attendanceData['tardiness_count'].' kali = '.$attendanceData['tardiness_score'].' poin') : 'Data tidak tersedia' }}">
                         </div>
-                        <p class="small text-muted mt-1">Otomatis dihitung sistem (Readonly)</p>
+                        <p class="small text-muted mt-1">Otomatis dihitung dari keterlambatan</p>
                     </div>
  
                     <div class="col-md-4">
-                        <label class="form-label-sb">Tanggung Jawab (Benefit - 20%) <span style="color:red">*</span></label>
-                        <select name="responsibility_score" class="form-control-sb form-select-sb" required>
-                            @foreach($scoreOptions as $val => $lbl)
-                                <option value="{{ $val }}" {{ old('responsibility_score', $performance->responsibility_score) == $val ? 'selected' : '' }}>{{ $val }} - {{ $lbl }}</option>
-                            @endforeach
-                        </select>
+                        <label class="form-label-sb">Tanggung Jawab (Benefit - 20%)</label>
+                        <input type="text" class="form-control-sb bg-light" readonly
+                            value="{{ $attendanceData ? ($attendanceData['responsibility_score'].' poin - Otomatis') : 'Data tidak tersedia' }}">
+                        <p class="small text-muted mt-1">Nilai otomatis dari kehadiran dan keterlambatan</p>
                     </div>
  
                     <div class="col-md-4">
-                        <label class="form-label-sb">Kebersihan (Benefit - 15%) <span style="color:red">*</span></label>
-                        <select name="cleanliness_score" class="form-control-sb form-select-sb" required>
-                            @foreach($scoreOptions as $val => $lbl)
-                                <option value="{{ $val }}" {{ old('cleanliness_score', $performance->cleanliness_score) == $val ? 'selected' : '' }}>{{ $val }} - {{ $lbl }}</option>
-                            @endforeach
-                        </select>
+                        <label class="form-label-sb">
+                            Kebersihan (Benefit - 15%) <span style="color:red">*</span>
+                        </label>
+
+                        @php
+                            $oldCleanliness = old('cleanliness_score', $performance->cleanliness_score);
+                            $checkedCount = $oldCleanliness >= 15 ? 4 : ($oldCleanliness >= 10 ? 3 : 1);
+                        @endphp
+
+                        <div class="p-3 rounded border bg-light">
+                            <label class="d-block mb-2">
+                                <input type="checkbox" name="meja_bersih" {{ old('meja_bersih') || $checkedCount >= 1 ? 'checked' : '' }}>
+                                Meja bersih
+                            </label>
+
+                            <label class="d-block mb-2">
+                                <input type="checkbox" name="lantai_bersih" {{ old('lantai_bersih') || $checkedCount >= 2 ? 'checked' : '' }}>
+                                Lantai bersih
+                            </label>
+
+                            <label class="d-block mb-2">
+                                <input type="checkbox" name="peralatan_bersih" {{ old('peralatan_bersih') || $checkedCount >= 3 ? 'checked' : '' }}>
+                                Peralatan bersih
+                            </label>
+
+                            <label class="d-block">
+                                <input type="checkbox" name="area_kerja_bersih" {{ old('area_kerja_bersih') || $checkedCount >= 4 ? 'checked' : '' }}>
+                                Area kerja bersih
+                            </label>
+                        </div>
+
+                        <p class="small text-muted mt-1">
+                            4 checklist = 15 poin, 2-3 checklist = 10 poin, 0-1 checklist = 5 poin.
+                        </p>
                     </div>
  
                     <div class="col-md-4">
                         <label class="form-label-sb">Keramahan (Benefit - 15%) <span style="color:red">*</span></label>
                         <select name="friendliness_score" class="form-control-sb form-select-sb" required>
+                            <option value="">Pilih Nilai</option>
                             @foreach($scoreOptions as $val => $lbl)
                                 <option value="{{ $val }}" {{ old('friendliness_score', $performance->friendliness_score) == $val ? 'selected' : '' }}>{{ $val }} - {{ $lbl }}</option>
                             @endforeach
@@ -89,7 +117,7 @@
  
                     <div class="col-12 mt-3">
                         <label class="form-label-sb">Catatan Tambahan (Opsional)</label>
-                        <textarea name="notes" class="form-control-sb" rows="3">{{ old('notes', $performance->notes) }}</textarea>
+                        <textarea name="notes" class="form-control-sb" rows="3" placeholder="Evaluasi kualitatif tentang kinerja karyawan...">{{ old('notes', $performance->notes) }}</textarea>
                     </div>
                 </div>
  
@@ -108,20 +136,35 @@
             <h6 style="font-size:14px; font-weight:700; margin-bottom:12px;">📊 Rumus Ranking SAW</h6>
             <div class="mb-3">
                 <p style="font-size:12px; color:var(--sb-text-muted);">
-                    Data absensi (Kehadiran & Keterlambatan) bersifat <strong>Readonly</strong> karena ditarik langsung dari log absensi sistem pada periode tersebut.
+                    Ranking dihitung menggunakan metode <strong>Simple Additive Weighting (SAW)</strong> dengan bobot sebagai berikut:
                 </p>
                 <div class="d-flex flex-column gap-2">
                     <div class="bg-white p-2 rounded border d-flex justify-content-between" style="font-size:11px;">
-                        <span>Kehadiran</span><span class="fw-bold">30%</span>
+                        <span>Kehadiran (Benefit)</span>
+                        <span class="fw-bold">30%</span>
                     </div>
                     <div class="bg-white p-2 rounded border d-flex justify-content-between" style="font-size:11px;">
-                        <span>Keterlambatan</span><span class="fw-bold">20%</span>
+                        <span>Keterlambatan (Cost)</span>
+                        <span class="fw-bold">20%</span>
                     </div>
                     <div class="bg-white p-2 rounded border d-flex justify-content-between" style="font-size:11px;">
-                        <span>Lainnya</span><span class="fw-bold">50%</span>
+                        <span>Tanggung Jawab (Benefit)</span>
+                        <span class="fw-bold">20%</span>
+                    </div>
+                    <div class="bg-white p-2 rounded border d-flex justify-content-between" style="font-size:11px;">
+                        <span>Kebersihan (Benefit)</span>
+                        <span class="fw-bold">15%</span>
+                    </div>
+                    <div class="bg-white p-2 rounded border d-flex justify-content-between" style="font-size:11px;">
+                        <span>Keramahan (Benefit)</span>
+                        <span class="fw-bold">15%</span>
                     </div>
                 </div>
             </div>
+            <p style="font-size:12px; color:var(--sb-text-muted); margin:0;">
+                Kriteria <strong>Benefit</strong> akan dinormalisasi dengan <i>x<sub>ij</sub> / max(x<sub>ij</sub>)</i>. <br>
+                Kriteria <strong>Cost</strong> akan dinormalisasi dengan <i>min(x<sub>ij</sub>) / x<sub>ij</sub></i>.
+            </p>
         </div>
     </div>
 </div>
