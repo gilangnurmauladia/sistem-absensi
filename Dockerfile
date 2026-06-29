@@ -34,4 +34,6 @@ COPY config/railway/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 
-CMD nginx && php-fpm
+# PERUBAHAN DI SINI: Menjaga container tetap hidup & berjalan di foreground
+CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
+
