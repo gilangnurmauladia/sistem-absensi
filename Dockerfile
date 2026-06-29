@@ -32,8 +32,11 @@ RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoload
 RUN mkdir -p /run/nginx
 COPY config/railway/nginx.conf /etc/nginx/nginx.conf
 
+# PERUBAHAN BARU: Berikan izin penuh pada folder storage Laravel agar tidak crash
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache \
+    && chmod -R 775 /app/storage /app/bootstrap/cache
+
 EXPOSE 80
 
-# PERUBAHAN DI SINI: Menjaga container tetap hidup & berjalan di foreground
 CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
 
