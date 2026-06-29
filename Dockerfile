@@ -30,7 +30,7 @@ RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoload
 
 # Setup Nginx configuration
 RUN mkdir -p /run/nginx
-COPY .railway/nginx.conf /etc/nginx/nginx.conf
+COPY config/railway/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 
